@@ -49,7 +49,7 @@ button,input{font-family:Tahoma,Verdana,Geneva,sans-serif;}
 
 /* side: the question, its picture, the prompt */
 .main{flex:1;min-height:0;display:flex;gap:28px;margin-top:10px;}
-.side{flex:0 0 clamp(16rem,27%,24rem);display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;padding-bottom:6px;}
+.side{flex:0 0 clamp(18rem,34%,34rem);display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;padding-bottom:6px;}
 .story{flex-shrink:0;padding:10px 14px;border-left:4px solid var(--ui-b);background:var(--ui-bg);
   border-radius:0 10px 10px 0;font-size:1.05rem;line-height:1.5;color:var(--prompt);}
 .story-lab{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ui);margin-bottom:2px;}
@@ -59,7 +59,7 @@ button,input{font-family:Tahoma,Verdana,Geneva,sans-serif;}
 .memes{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px;}
 .memes figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:100%;}
 .memes figcaption{font-size:.8rem;font-weight:700;color:var(--slate);}
-.memes img{display:block;max-width:100%;max-height:44vh;width:auto;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.18);}
+.memes img{display:block;max-width:100%;max-height:62vh;width:auto;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.18);}
 .promptbar{flex-shrink:0;border-left:4px solid var(--edge);padding:6px 0 6px 14px;}
 .prompt{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;color:var(--prompt);font-size:1.35rem;line-height:1.5;}
 .row-between{display:flex;flex-direction:column;align-items:flex-start;gap:14px;width:100%;}
@@ -152,7 +152,8 @@ svg.cancels{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;
 .xfrac .xbar{width:100%;min-width:1.2em;border-top:2px solid currentColor;margin:3px 0;}
 .eq .xfrac .box{height:1.5em;width:2.2em;font-size:.95em;padding:0;}
 .xfrac .xnew{color:var(--ink);}
-.xfrac .cx-old{color:var(--faint);background-repeat:no-repeat;background-image:linear-gradient(to bottom right, transparent calc(50% - 1.8px), var(--blue) calc(50% - 1.8px), var(--blue) calc(50% + 1.8px), transparent calc(50% + 1.8px));}
+.xfrac .cx-old{color:var(--faint);}
+svg.xlines{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;stroke:var(--blue);stroke-linecap:round;}
 .xfrac .xnum.hl1{background:#fde68a;} .xfrac .xnum.hl2{background:#bbf7d0;} .xfrac .xnum.hl3{background:#fbcfe8;}
 .xfrac .xnum.hl4{background:#ddd6fe;} .xfrac .xnum.hl5{background:#fed7aa;} .xfrac .xnum.hl6{background:#a5f3fc;}
 .eq .box.w3{width:2.6em;}
@@ -170,6 +171,7 @@ svg.cancels{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;
 .swp{display:inline-block;}
 .cell.xrow{line-height:1.2;align-self:center;}
 .flipsg{display:inline-block;color:var(--rose);font-weight:700;}
+.mixeq{display:inline-block;font-size:.55em;font-weight:700;vertical-align:middle;margin:0 .3em;}
 
 /* answer boxes */
 .box{border:2px solid var(--ui-b);background:var(--white);color:var(--ui);border-radius:6px;text-align:center;outline:none;
@@ -748,7 +750,7 @@ function mixPart(i){
   const nx=CUR.steps[i+1];
   if(!nx || nx.k!=="mix" || !(G.step>i || G.phase==="end")) return "";
   const ask=G.step===i+1 && G.phase==="ask", wr=G.step===i+1 && G.phase==="write";
-  return ' <span class="mixeq">=</span> '+(ask ? inputHTML(i+1,"M",{t:"num",w:nx.w,quiz:true},"w3") : '<span class="'+(wr?'blue fresh':'')+'">'+numHTML(nx.w)+'</span>');
+  return ' <span class="mixeq">or</span> '+(ask ? inputHTML(i+1,"M",{t:"num",w:nx.w,quiz:true},"w3") : '<span class="'+(wr?'blue fresh':'')+'">'+numHTML(nx.w)+'</span>');
 }
 function letterRight(st){
   if(!st || st.k!=="row") return false;
@@ -789,17 +791,18 @@ function parseF(s){
   return {neg:neg, n:+m[1], d:m[2]?+m[2]:1, v:m[3]};
 }
 function crossSetup(st){
-  const items=[], map={}, said=[]; let pc=0;
+  const items=[], map={}, said=[]; let pc=0, np=0;
   ["L","R"].forEach(function(S){ st[S].forEach(function(tm,ti){
     const A=parseF(tm.m), B=parseF(tm.c); tm._A=A; tm._B=B;
     const add=function(top,bot,whichT,whichB){
       if(!top || !bot) return;
       const g=gcd(top,bot); if(g<2) return;
       /* the same number on top and bottom just cancels: crossed out, nothing to type */
-      if(top===bot){ map[S+"|"+ti+"|"+whichT+"|n"]={auto:true}; map[S+"|"+ti+"|"+whichB+"|d"]={auto:true}; st.autos=(st.autos||0)+1; return; }
+      const pid="p"+(np++);
+      if(top===bot){ map[S+"|"+ti+"|"+whichT+"|n"]={auto:true,pid:pid}; map[S+"|"+ti+"|"+whichB+"|d"]={auto:true,pid:pid}; st.autos=(st.autos||0)+1; return; }
       const c=(pc++%6)+1;
       [[whichT,"n",top],[whichB,"d",bot]].forEach(function(x){
-        const it={id:"c"+items.length, w:x[2]/g, c:c}; items.push(it); map[S+"|"+ti+"|"+x[0]+"|"+x[1]]=it;
+        const it={id:"c"+items.length, w:x[2]/g, c:c, pid:pid}; items.push(it); map[S+"|"+ti+"|"+x[0]+"|"+x[1]]=it;
       });
       const t=top+" and "+bot+" both divide by "+g+"."; if(said.indexOf(t)<0) said.push(t);
     };
@@ -837,7 +840,9 @@ function xf(F,S,ti,which,i,mode,lc){
     if(mode==="ask") return '<span class="xslot">'+inputHTML(i,it.id,{t:"num",w:String(it.w)},"hlb"+it.c)+'</span>';
     return '<span class="xslot"><span class="'+(mode==="write"?"blue fresh":"xnew")+lo+'">'+it.w+'</span></span>';
   };
-  const num=function(txt,it){ const cls=!it ? lo : it.auto ? " cx-old" : mode==="ask" ? " hl"+it.c : " cx-old"; return '<span class="xnum'+cls+'">'+txt+'</span>'; };
+  const num=function(txt,it){ const cls=!it ? lo : it.auto ? " cx-old" : mode==="ask" ? " hl"+it.c : " cx-old";
+    const pd=(it && /cx-old/.test(cls)) ? ' data-pid="'+i+'-'+it.pid+'"' : "";
+    return '<span class="xnum'+cls+'"'+pd+'>'+txt+'</span>'; };
   const top=F.txt!=null ? F.txt : (F.vin ? (F.n===1?"":F.n)+F.vin : String(F.n));
   let h='<span class="xfrac">'+slot(tIt)+num(top,tIt);
   h+= F.d!==1 ? '<span class="xbar"></span>'+num(String(F.d),bIt)+slot(bIt) : '<span class="xslot"></span>';
@@ -1466,7 +1471,29 @@ function cancelOps(){
 /* order matters: a line slides under what's left of the line above it (cancelOps), then whatever is added
    or subtracted is written under that line (alignOps), then the cross-outs are drawn where things ended up */
 function layoutWork(){ cancelOps(); alignOps(); cancelOps(); }
-function relayout(){ alignAsk(); layoutWork(); alignAsk(); layoutWork(); alignAsk(); placeAns(); drawArrows(); }
+/* cross simplifying: one long line through both numbers that cancel, like on paper */
+function crossLines(){
+  const eq=$("eq"); eq.querySelectorAll("svg.xlines").forEach(function(e){ e.remove(); });
+  if(eq.hidden) return;
+  const er=eq.getBoundingClientRect(); if(!er.width) return;
+  const k=eq.offsetWidth/er.width, fs=parseFloat(getComputedStyle(eq).fontSize), groups={};
+  eq.querySelectorAll("[data-pid]").forEach(function(e){ const id=e.getAttribute("data-pid"); (groups[id]=groups[id]||[]).push(e); });
+  let h="";
+  Object.keys(groups).forEach(function(id){
+    const g=groups[id]; if(g.length!==2) return;
+    const a=g[0].getBoundingClientRect(), b=g[1].getBoundingClientRect();
+    const ax=(a.left+a.right)/2, ay=(a.top+a.bottom)/2, bx=(b.left+b.right)/2, by=(b.top+b.bottom)/2;
+    const dx=bx-ax, dy=by-ay, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L;
+    const ea=Math.max(a.width,a.height)*0.42, eb=Math.max(b.width,b.height)*0.42;
+    h+='<line x1="'+((ax-ux*ea-er.left)*k)+'" y1="'+((ay-uy*ea-er.top)*k)+'" x2="'+((bx+ux*eb-er.left)*k)+'" y2="'+((by+uy*eb-er.top)*k)+'"/>';
+  });
+  if(!h) return;
+  const sv=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  sv.setAttribute("class","xlines"); sv.setAttribute("width",eq.offsetWidth); sv.setAttribute("height",eq.offsetHeight);
+  sv.style.strokeWidth=Math.max(2,fs*0.045)+"px";
+  sv.innerHTML=h; eq.appendChild(sv);
+}
+function relayout(){ alignAsk(); layoutWork(); alignAsk(); layoutWork(); alignAsk(); placeAns(); drawArrows(); crossLines(); }
 function alignOps(){
   const eq=$("eq");
   eq.querySelectorAll(".cell.op[data-i]").forEach(function(c){
@@ -1607,14 +1634,23 @@ function narrow(){ return window.innerWidth<=900; }
 function fitSide(){
   const side=document.querySelector(".side"), story=$("story"), pb=$("promptbar");
   const imgs=Array.prototype.slice.call(story.querySelectorAll(".memes img"));
-  story.style.zoom=""; pb.style.zoom=""; imgs.forEach(function(im){ im.style.maxHeight=""; });
+  story.style.zoom=""; pb.style.zoom=""; imgs.forEach(function(im){ im.style.maxHeight=""; im.style.width=""; im.style.height=""; });
   if(narrow()) return;
+  /* pictures fill the column (small ones are blown up, up to twice their size), but no taller than 62% of the screen */
+  const box=story.querySelector(".memes"), W=box ? box.clientWidth : 0, HMAX=window.innerHeight*0.62;
+  const sizeTo=function(im,h){ const a=im.naturalWidth/im.naturalHeight; im.style.height=Math.round(h)+"px"; im.style.width=Math.round(h*a)+"px"; };
+  imgs.forEach(function(im){
+    if(!im.naturalWidth || !W) return;
+    const w=Math.min(W, im.naturalWidth*2), h=Math.min(HMAX, w*im.naturalHeight/im.naturalWidth);
+    sizeTo(im,h);
+  });
   let over=side.scrollHeight-side.clientHeight;
   if(over<=0) return;
+  /* not enough room for the words: the pictures give it up first */
   const tot=imgs.reduce(function(a,im){ return a+im.offsetHeight; },0);
   if(tot>0){
     const f=Math.max(0,(tot-over-4)/tot);
-    imgs.forEach(function(im){ im.style.maxHeight=Math.max(70, Math.floor(im.offsetHeight*f))+"px"; });
+    imgs.forEach(function(im){ if(im.naturalWidth) sizeTo(im, Math.max(70, Math.floor(im.offsetHeight*f))); });
     over=side.scrollHeight-side.clientHeight;
   }
   for(let z=0.95; over>0 && z>=0.6; z-=0.05){
